@@ -1,81 +1,182 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-typedef struct contato{
+void *pBuffer;
+
+typedef struct Pessoa{
     char nome[20];
-    int numero;
-    struct contato *proxContato;
-}Contato
+}pessoa;
 
-void incluir(*pBuffer){
-	pBuffer = (Contato *)realloc(pBuffer,1*sizeof(Contato));
+typedef struct variavel{
+    int op,i,j,cont,a,min_id;
+    pessoa atual,min;
+}variaveis;
 
-	printf("Digite o nome da pessoa a ser adicionada:");
-	scanf("%s",pBuffer);
+void incluir(variaveis* aux, pessoa* nome){
+	if((pBuffer=realloc(pBuffer,sizeof(variaveis)+sizeof(pessoa)+(aux->cont * sizeof(pessoa))))==NULL){
+        printf("Nao foi possivel alocar memoria");
+        exit(1);
+	}
+	aux = pBuffer;
+	nome = pBuffer + sizeof(variaveis) + (aux->cont * sizeof(pessoa));
 
-	printf("Digite o número da pessoa a ser adicionada:");
-	scanf("%d",pBuffer);
+	printf("Escreva um nome:\n");
+	getchar();
+	fgets(nome->nome,20,stdin);
+
+	aux->cont++;
 }
 
-void apagar(){
-
+void apagar(variaveis* aux){
+    if(aux->cont>0){
+        if((pBuffer=realloc(pBuffer,sizeof(variaveis)+sizeof(pessoa)+(aux->cont-1 * sizeof(pessoa))))==NULL){
+            printf("Nao foi possivel alocar memoria");
+            exit(1);
+        }
+    }else{
+        printf("Nao ha mais nomes para serem apagados!");
+    }
+	aux->cont--;
 }
 
-void buscar(){
+void buscar(variaveis* aux){
+    pessoa  *buscar,*nome;
 
+    nome = pBuffer + sizeof(variaveis);
+
+    if((buscar = (pessoa *)calloc(1,sizeof(pessoa)))== NULL){
+        printf("Memoria Insuficiente");
+        exit(1);
+    }
+
+    printf("Digite o nome:\n");
+    scanf("%s",buscar->nome);
+    printf("\n");
+
+    for(aux->i = 0; aux->i < aux->cont; aux->i++){
+		if((strcmp(buscar->nome,nome->nome))== 0){
+			printf("%s\n",nome->nome);
+			nome++;
+			aux->a++;
+		}
+		else
+			nome++;
+	}
+
+	if(aux->a == 0){
+        printf("O nome nao existe na agenda\n");
+	}
+	printf("\n");
+
+	aux->a = 0;
+
+	free(buscar);
 }
 
-void listar(){
-
+void listar(variaveis *aux){
+    pessoa *nome;
+    nome = pBuffer + sizeof(variaveis);
+    for(aux->i=0;aux->i<aux->cont;aux->i++){
+        printf("%s",nome->nome);
+        nome++;
+    }
 }
 
-void Sair(){
-    free(pBuffer);
+void insertionSort(variaveis* aux){
+    pessoa *original;
+    original = pBuffer + sizeof(variaveis);
+
+    if(aux->cont > 1){
+        for (aux->i = 1; aux->i < aux->cont; aux->i++) {
+            aux->atual = original[aux->i];
+            for (aux->j = aux->i - 1; (aux->j >= 0) && (aux->atual.nome[0] < original[aux->j].nome[0]); aux->j--) {
+                original[aux->j + 1] = original[aux->j];
+            }
+            original[aux->j+1] = aux->atual;
+        }
+    }
+}
+
+void selectionSort(variaveis* aux){
+    pessoa  *nome
+    nome = pBuffer + sizeof(variaveis);
+
+    for (aux->i = 0; aux->i < aux->cont-1; aux->i++) {
+        aux->min = nome[aux->i];
+        for (aux->j = (aux->i+1); aux->j < aux->cont; aux->j++) {
+            if(nome[aux->j].nome[0] < aux->min.nome[0]){
+                aux->min = nome[aux->j];
+                aux->min_id = aux->j;
+            }
+        }
+
+    }
+}
+
+
+void sort(variaveis *aux){
+    insertionSort(aux);
+    //selectionSort(aux);
+    //bubbleSort(aux);
+    //quickSort(aux);
+
 }
 
 void main(){
 
-	void *pBuffer;
-	int *op
+    variaveis *aux;
+    pessoa *nome;
 
-    if((pBuffer = malloc(1*sizeof(int)))==NULL){
+    if((pBuffer =(variaveis *) malloc(sizeof(variaveis)))==NULL){
 		printf("Memoria Insuficiente");
 		exit(1);
 	}
 
-    while(1>0){
-        printf("Selecione uma das opções:\n");
+	aux = pBuffer;
+	aux->cont = 0;
+    do{
+        printf("Selecione uma das opcoes:\n");
         printf("Incluir: 1\n");
         printf("Apagar : 2\n");
         printf("Buscar : 3\n");
         printf("Listar : 4\n");
-        printf("Sair   : 5\n");
+        printf("Ordenar: 5\n");
+        printf("Sair   : 6\n");
 
-        scanf("%d",op);
+        scanf("%d", &aux->op);
 
-        switch (op){
-        case 1 :
-        incluir(pBuffer);
+
+        switch (aux->op){
+
+        case 1:
+        incluir(aux,nome);
         break;
 
         case 2:
-        apagar();
+        apagar(aux);
         break;
 
         case 3:
-        buscar();
+        buscar(aux);
         break;
 
         case 4:
-        listar();
+        listar(aux);
         break;
 
         case 5:
-        Sair(pBuffer);
+        sort(aux);
+        break;
+
+        case 6:
         break;
 
         default:
-        printf("Opção inválida!")
+        printf("Opcao invalida!\n");
+        break;
         }
-    }
+    }while(aux->op != 6);
+
+	free(pBuffer);
 }
